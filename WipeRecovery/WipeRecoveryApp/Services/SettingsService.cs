@@ -15,6 +15,7 @@ public class SettingsService : ISettingsService
     {
         _fileSystem = fileSystem;
         _serializerOptions = new JsonSerializerOptions { WriteIndented = true };
+        Load();
     }
 
     public void Load()
