@@ -29,6 +29,9 @@ public partial class MainViewModel : ViewModelBase
     
     public bool HasValidWowRoot => 
         !string.IsNullOrWhiteSpace(WowRootPath) && Directory.Exists(WowRootPath);
+    
+    public bool ShowNoVersionsWarning =>
+        HasValidWowRoot && DetectedVersions.Count == 0;
 
     [ObservableProperty]
     private string? _statusMessage;
@@ -106,6 +109,7 @@ public partial class MainViewModel : ViewModelBase
         }
 
         _settingsService.Save();
+        OnPropertyChanged(nameof(ShowNoVersionsWarning));
     }
     
     private bool CanExecuteBackup()
@@ -243,10 +247,6 @@ public partial class MainViewModel : ViewModelBase
             return;
 
         var zips = Directory.GetFiles(folder, "*.zip", SearchOption.TopDirectoryOnly);
-        
-        Console.WriteLine($"Scanning: {folder}");
-        foreach (var path in zips)
-            Console.WriteLine("Found file: " + path);
 
         foreach (var path in zips)
         {
@@ -333,6 +333,7 @@ public partial class MainViewModel : ViewModelBase
         BackupCommand.NotifyCanExecuteChanged();
         RestoreSelectedCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(HasValidWowRoot));
+        OnPropertyChanged(nameof(ShowNoVersionsWarning)); 
     }
     
     partial void OnIsBusyChanged(bool value)

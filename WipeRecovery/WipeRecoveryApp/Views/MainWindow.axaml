@@ -26,15 +26,19 @@
                 <TextBox Width="400" Text="{Binding WowRootPath, Mode=TwoWay}" IsReadOnly="True" />
                 <Button Content="Browse…" Command="{Binding BrowseWowRootCommand}" />
             </StackPanel>
-
+            
             <!-- Missing WoW Folder Warning -->
             <TextBlock Text="No valid WoW folder found. Please select one above."
-                       Foreground="DarkRed"
+                       Foreground="Red"
                        IsVisible="{Binding HasValidWowRoot, Converter={StaticResource InverseBoolConverter}}" />
 
             <!-- Detected Versions -->
             <StackPanel IsVisible="{Binding HasValidWowRoot}">
                 <TextBlock Text="Detected WoW Versions:" FontWeight="Bold" />
+                
+                <TextBlock Text="No WoW versions found in this folder. Try selecting a different World of Warcraft directory."
+                           Foreground="Yellow"
+                           IsVisible="{Binding ShowNoVersionsWarning}" />
 
                 <ItemsControl ItemsSource="{Binding DetectedVersions}">
                     <ItemsControl.ItemTemplate>

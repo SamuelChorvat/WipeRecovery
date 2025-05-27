@@ -12,6 +12,24 @@ public class GameVersionDetectionServiceTests
         var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(root);
         Directory.CreateDirectory(Path.Combine(root, "_retail_"));
+
+        var service = new GameVersionDetectionService();
+
+        // Act
+        var result = service.DetectVersions(root).ToList();
+
+        // Assert
+        result.Should().HaveCount(1);
+        result.Any(v => v.FolderName == "_retail_").Should().BeTrue();
+    }
+    
+    [Fact]
+    public void DetectVersions_ShouldReturnOnlySupportedGameVersions()
+    {
+        // Arrange
+        var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(root);
+        Directory.CreateDirectory(Path.Combine(root, "_retail_"));
         Directory.CreateDirectory(Path.Combine(root, "_ptr_"));
 
         var service = new GameVersionDetectionService();
@@ -20,9 +38,9 @@ public class GameVersionDetectionServiceTests
         var result = service.DetectVersions(root).ToList();
 
         // Assert
-        result.Should().HaveCount(2);
+        result.Should().HaveCount(1);
         result.Any(v => v.FolderName == "_retail_").Should().BeTrue();
-        result.Any(v => v.FolderName == "_ptr_").Should().BeTrue();
+        result.Any(v => v.FolderName == "_ptr_").Should().BeFalse();
     }
 
     [Fact]
