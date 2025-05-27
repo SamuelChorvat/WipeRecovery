@@ -32,10 +32,7 @@ public partial class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(),
-            };
+            desktop.MainWindow = Services.GetRequiredService<MainWindow>();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -59,11 +56,12 @@ public partial class App : Application
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IGameVersionDetectionService, GameVersionDetectionService>();
         services.AddSingleton<IBackupService, BackupService>();
-        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<IRestoreService, RestoreService>();
+        services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>(sp =>
             new MainWindow
             {
-                DataContext = sp.GetRequiredService<MainWindowViewModel>()
+                DataContext = sp.GetRequiredService<MainViewModel>()
             });
     }
     
