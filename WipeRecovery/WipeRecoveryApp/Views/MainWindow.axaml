@@ -61,9 +61,8 @@
 
             <!-- Backup Button -->
             <Button Content="Back Up Now"
-                    Command="{Binding BackupCommand}" />
-
-            <TextBlock Text="{Binding StatusMessage}" FontStyle="Italic" Foreground="Gray" />
+                    Command="{Binding BackupCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
 
             <!-- Restore Section -->
             <TextBlock Text="Restore Backup:" FontWeight="Bold" />
@@ -78,7 +77,6 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <CheckBox Content="Restore WTF" IsChecked="{Binding RestoreWtf}" />
                 <CheckBox Content="Restore AddOns" IsChecked="{Binding RestoreAddOns}" />
@@ -87,6 +85,12 @@
             <Button Content="Restore Selected"
                     Command="{Binding RestoreSelectedCommand}" 
                     IsEnabled="{Binding SelectedBackup}" />
+            
+            <ProgressBar IsIndeterminate="True"
+                         Height="6"
+                         IsVisible="{Binding IsBusy}" />
+
+            <TextBlock Text="{Binding StatusMessage}" FontStyle="Italic" Foreground="Gray" />
 
         </StackPanel>
     </ScrollViewer>

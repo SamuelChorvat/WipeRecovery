@@ -54,7 +54,8 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<BackupEntry> _availableBackups = [];
     
-    public ObservableCollection<GameVersionInfo> DetectedVersions { get; } = [];
+    [ObservableProperty]
+    private ObservableCollection<GameVersionInfo> _detectedVersions = [];
 
     public IRelayCommand BackupCommand { get; }
     public IRelayCommand RestoreSelectedCommand { get; }
@@ -79,7 +80,7 @@ public partial class MainViewModel : ViewModelBase
         
         BrowseFolderCommand = new AsyncRelayCommand(ExecuteBrowseFolderAsync);
         BackupCommand = new AsyncRelayCommand(ExecuteBackupAsync, CanExecuteBackup);
-        RestoreSelectedCommand = new AsyncRelayCommand(ExecuteRestoreSelectedAsync, () => SelectedBackup != null);
+        RestoreSelectedCommand = new AsyncRelayCommand(ExecuteRestoreSelectedAsync, CanExecuteRestoreSelected);
         BrowseWowRootCommand = new AsyncRelayCommand(ExecuteBrowseWowRootAsync);
         WowRootPath = _settingsService.Settings.WowRootPath;
 
@@ -114,29 +115,45 @@ public partial class MainViewModel : ViewModelBase
                Directory.Exists(BackupPath) &&
                DetectedVersions.Any(v => v.IsSelected);
     }
-
+    
+    private bool CanExecuteRestoreSelected()
+    {
+        return !IsBusy &&
+               Directory.Exists(WowRootPath) &&
+               Directory.Exists(BackupPath) &&
+               SelectedBackup != null;
+    }
 
     private async Task ExecuteBackupAsync()
     {
+        if (IsBusy) return;
         IsBusy = true;
         StatusMessage = "Backing up...";
 
-        var root = _settingsService.Settings.WowRootPath;
+        var root = WowRootPath;
         var destination = BackupPath;
-        var successCount = 0;
+        var selected = DetectedVersions.Where(v => v.IsSelected).ToList();
+        var includeAddOns = IncludeAddOns;
 
-        foreach (var version in DetectedVersions.Where(v => v.IsSelected))
+        var results = await Task.Run(() =>
         {
-            var result = await _backupService.Backup(root, version.FolderName, destination, IncludeAddOns);
-            if (result.Success)
-                successCount++;
-            else
-                StatusMessage = $"Backup failed: {result.ErrorMessage}";
-        }
+            var successCount = 0;
 
-        StatusMessage = $"Backed up {successCount} version(s).";
-        IsBusy = false;
+            foreach (var version in selected)
+            {
+                var result = _backupService.Backup(root, version.FolderName, destination, includeAddOns).Result;
+                if (result.Success)
+                    successCount++;
+                else
+                    StatusMessage = $"Backup failed: {result.ErrorMessage}";
+            }
+
+            return successCount;
+        });
+
+        StatusMessage = $"Backed up {results} version(s).";
         LoadAvailableBackups();
+        IsBusy = false;
     }
     
     private async Task ExecuteBrowseFolderAsync()
@@ -198,6 +215,7 @@ public partial class MainViewModel : ViewModelBase
             if (e.PropertyName != nameof(version.IsSelected)) return;
             savedSelections[version.FolderName] = version.IsSelected;
             _settingsService.Save();
+            BackupCommand.NotifyCanExecuteChanged();
         };
     }
     
@@ -212,6 +230,7 @@ public partial class MainViewModel : ViewModelBase
         _settingsService.Settings.BackupFolder = value;
         _settingsService.Save();
         BackupCommand.NotifyCanExecuteChanged();
+        RestoreSelectedCommand.NotifyCanExecuteChanged();
         LoadAvailableBackups();
     }
     
@@ -255,32 +274,30 @@ public partial class MainViewModel : ViewModelBase
         var sorted = AvailableBackups.OrderByDescending(b => b.Timestamp).ToList();
         AvailableBackups = new ObservableCollection<BackupEntry>(sorted);
         SelectedBackup = AvailableBackups.FirstOrDefault();
+        RestoreSelectedCommand.NotifyCanExecuteChanged();
     }
     
     private async Task ExecuteRestoreSelectedAsync()
     {
-        if (SelectedBackup is null)
-        {
-            StatusMessage = "No backup selected.";
-            return;
-        }
+        if (SelectedBackup == null || IsBusy) return;
 
-        var versionFolder = SelectedBackup.Version;
-        var root = _settingsService.Settings.WowRootPath;
-
+        IsBusy = true;
         StatusMessage = $"Restoring {SelectedBackup.DisplayName}...";
 
-        var result = await _restoreService.Restore(
-            SelectedBackup.FilePath,
-            root,
-            versionFolder,
-            RestoreWtf,
-            RestoreAddOns
-        );
+        var backup = SelectedBackup;
+        var wtf = RestoreWtf;
+        var addons = RestoreAddOns;
+        var wowRoot = WowRootPath;
+        var version = backup.Version;
+
+        var result = await Task.Run(() =>
+            _restoreService.Restore(backup.FilePath, wowRoot, version, wtf, addons).Result);
 
         StatusMessage = result.Success
-            ? $"Restored backup for {versionFolder} successfully."
+            ? $"Restored {backup.DisplayName} successfully."
             : $"Restore failed: {result.ErrorMessage}";
+
+        IsBusy = false;
     }
     
     private async Task ExecuteBrowseWowRootAsync()
@@ -314,6 +331,18 @@ public partial class MainViewModel : ViewModelBase
         _settingsService.Settings.WowRootPath = value;
         _settingsService.Save();
         BackupCommand.NotifyCanExecuteChanged();
+        RestoreSelectedCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(HasValidWowRoot));
+    }
+    
+    partial void OnIsBusyChanged(bool value)
+    {
+        BackupCommand.NotifyCanExecuteChanged();
+        RestoreSelectedCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSelectedBackupChanged(BackupEntry? value)
+    {
+        RestoreSelectedCommand.NotifyCanExecuteChanged();
     }
 }
