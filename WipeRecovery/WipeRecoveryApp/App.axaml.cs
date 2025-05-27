@@ -1,9 +1,12 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.DependencyInjection;
+using WipeRecoveryApp.Services;
 using WipeRecoveryApp.ViewModels;
 using WipeRecoveryApp.Views;
 
@@ -11,6 +14,8 @@ namespace WipeRecoveryApp;
 
 public partial class App : Application
 {
+    public static IServiceProvider Services { get; private set; } = null!;
+    
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -18,6 +23,10 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var serviceCollection = new ServiceCollection();
+        ConfigureServices(serviceCollection);
+        Services = serviceCollection.BuildServiceProvider();
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
@@ -44,4 +53,18 @@ public partial class App : Application
             BindingPlugins.DataValidators.Remove(plugin);
         }
     }
+    private void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton<IFileSystem, DefaultFileSystem>();
+        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IGameVersionDetectionService, GameVersionDetectionService>();
+        services.AddSingleton<IBackupService, BackupService>();
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<MainWindow>(sp =>
+            new MainWindow
+            {
+                DataContext = sp.GetRequiredService<MainWindowViewModel>()
+            });
+    }
+    
 }
