@@ -31,15 +31,25 @@ public class GameVersionDetectionService : IGameVersionDetectionService
             var candidates = new[]
             {
                 @"C:\Program Files\World of Warcraft",
-                @"C:\Program Files (x86)\World of Warcraft"
+                @"C:\Program Files (x86)\World of Warcraft",
+                @"C:\Program Files (x86)\Battle.net\World of Warcraft",
+                @"C:\Program Files\Battle.net\World of Warcraft"
             };
 
             return candidates.FirstOrDefault(Directory.Exists);
         }
 
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return null;
-        const string macPath = "/Applications/World of Warcraft";
-        return Directory.Exists(macPath) ? macPath : null;
+        {
+            var candidates = new[]
+            {
+                "/Applications/World of Warcraft",
+                "/Users/Shared/World of Warcraft",
+                "/Applications/Battle.net/World of Warcraft"
+            };
+
+            return candidates.FirstOrDefault(Directory.Exists);
+        }
 
     }
 }
