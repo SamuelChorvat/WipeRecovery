@@ -9,7 +9,7 @@
         x:DataType="vm:MainViewModel"
         Title="Wipe Recovery"
         Width="700"
-        Height="500">
+        Height="700">
 
     <Design.DataContext>
         <vm:MainViewModel />
@@ -20,34 +20,76 @@
 
             <TextBlock Text="Back up before the boss does." FontSize="18" />
 
-            <TextBlock Text="Detected WoW Versions:" FontWeight="Bold" />
+            <!-- WoW Folder Picker -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="WoW Folder:" VerticalAlignment="Center" />
+                <TextBox Width="400" Text="{Binding WowRootPath, Mode=TwoWay}" IsReadOnly="True" />
+                <Button Content="Browse…" Command="{Binding BrowseWowRootCommand}" />
+            </StackPanel>
 
-            <ItemsControl ItemsSource="{Binding DetectedVersions}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="models:GameVersionInfo">
-                        <CheckBox Content="{Binding DisplayName}"
-                                  IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <!-- Missing WoW Folder Warning -->
+            <TextBlock Text="No valid WoW folder found. Please select one above."
+                       Foreground="DarkRed"
+                       IsVisible="{Binding HasValidWowRoot, Converter={StaticResource InverseBoolConverter}}" />
 
+            <!-- Detected Versions -->
+            <StackPanel IsVisible="{Binding HasValidWowRoot}">
+                <TextBlock Text="Detected WoW Versions:" FontWeight="Bold" />
+
+                <ItemsControl ItemsSource="{Binding DetectedVersions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:GameVersionInfo">
+                            <CheckBox Content="{Binding DisplayName}"
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- AddOns Toggle -->
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="Include AddOns:" VerticalAlignment="Center" />
                 <ToggleSwitch IsChecked="{Binding IncludeAddOns}" />
             </StackPanel>
 
+            <!-- Backup Folder Picker -->
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="Backup Folder:" VerticalAlignment="Center" />
-                <TextBox Width="400" Text="{Binding BackupPath, Mode=TwoWay}" />
+                <TextBox Width="400" Text="{Binding BackupPath, Mode=TwoWay}" IsReadOnly="True" />
                 <Button Content="Browse…" Command="{Binding BrowseFolderCommand}" />
             </StackPanel>
 
+            <!-- Backup Button -->
             <Button Content="Back Up Now"
                     Command="{Binding BackupCommand}" />
 
             <TextBlock Text="{Binding StatusMessage}" FontStyle="Italic" Foreground="Gray" />
 
+            <!-- Restore Section -->
+            <TextBlock Text="Restore Backup:" FontWeight="Bold" />
+
+            <ComboBox ItemsSource="{Binding AvailableBackups}"
+                      SelectedItem="{Binding SelectedBackup}"
+                      Width="400">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <CheckBox Content="Restore WTF" IsChecked="{Binding RestoreWtf}" />
+                <CheckBox Content="Restore AddOns" IsChecked="{Binding RestoreAddOns}" />
+            </StackPanel>
+
+            <Button Content="Restore Selected"
+                    Command="{Binding RestoreSelectedCommand}" 
+                    IsEnabled="{Binding SelectedBackup}" />
+
         </StackPanel>
     </ScrollViewer>
 </Window>
+
 

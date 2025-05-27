@@ -24,7 +24,7 @@ public class BackupService : IBackupService
                 throw new DirectoryNotFoundException($"WTF folder not found for {gameVersionFolder}");
 
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HHmmss");
-            var zipName = $"WR_{gameVersionFolder}_{timestamp}.zip";
+            var zipName = $"WR~{gameVersionFolder}~{timestamp}.zip";
             var zipPath = Path.Combine(backupDestination, zipName);
 
             // Ensure backup directory

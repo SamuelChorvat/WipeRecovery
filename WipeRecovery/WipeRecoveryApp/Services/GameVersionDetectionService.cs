@@ -2,26 +2,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using WipeRecoveryApp.Constants;
 using WipeRecoveryApp.Models;
 
 namespace WipeRecoveryApp.Services;
 
 public class GameVersionDetectionService : IGameVersionDetectionService
 {
-    private static readonly Dictionary<string, string> KnownVersions = new()
-    {
-        { "_retail_", "Retail" },
-        { "_classic_", "Classic" },
-        { "_classic_era_", "Classic Era" },
-        { "_ptr_", "Public Test Realm" }
-    };
-
     public IEnumerable<GameVersionInfo> DetectVersions(string wowRootPath)
     {
         if (!Directory.Exists(wowRootPath))
             return [];
 
-        return KnownVersions
+        return WowVersions.SupportedVersions
             .Where(kv => Directory.Exists(Path.Combine(wowRootPath, kv.Key)))
             .Select(kv => new GameVersionInfo
             {
