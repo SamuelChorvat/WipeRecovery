@@ -29,7 +29,7 @@
             
             <!-- Missing WoW Folder Warning -->
             <TextBlock Text="No valid WoW folder found. Please select one above."
-                       Foreground="Red"
+                       Foreground="Yellow"
                        IsVisible="{Binding HasValidWowRoot, Converter={StaticResource InverseBoolConverter}}" />
 
             <!-- Detected Versions -->
