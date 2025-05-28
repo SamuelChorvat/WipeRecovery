@@ -23,6 +23,8 @@ public partial class MainViewModel : ViewModelBase
     private readonly IGameVersionDetectionService _versionService;
     private readonly IBackupService _backupService;
     private readonly IRestoreService _restoreService;
+    private readonly IAutoBackupService _autoBackupService;
+    private readonly IRetentionService _retentionService;
     
     [ObservableProperty]
     private string _wowRootPath;
@@ -59,6 +61,18 @@ public partial class MainViewModel : ViewModelBase
     
     [ObservableProperty]
     private ObservableCollection<GameVersionInfo> _detectedVersions = [];
+    
+    [ObservableProperty]
+    private bool _autoBackupEnabled;
+
+    [ObservableProperty]
+    private string _autoBackupIntervalDays;
+
+    [ObservableProperty]
+    private bool _autoRetentionEnabled;
+
+    [ObservableProperty]
+    private string _retentionMaxPerVersion;
 
     public IRelayCommand BackupCommand { get; }
     public IRelayCommand RestoreSelectedCommand { get; }
@@ -69,12 +83,16 @@ public partial class MainViewModel : ViewModelBase
         ISettingsService settingsService,
         IGameVersionDetectionService versionService,
         IBackupService backupService,
-        IRestoreService restoreService)
+        IRestoreService restoreService,
+        IAutoBackupService autoBackupService,
+        IRetentionService retentionService)
     {
         _settingsService = settingsService;
         _versionService = versionService;
         _backupService = backupService;
         _restoreService = restoreService;
+        _autoBackupService = autoBackupService;
+        _retentionService = retentionService;
 
         var settings = _settingsService.Settings;
 
@@ -86,9 +104,14 @@ public partial class MainViewModel : ViewModelBase
         RestoreSelectedCommand = new AsyncRelayCommand(ExecuteRestoreSelectedAsync, CanExecuteRestoreSelected);
         BrowseWowRootCommand = new AsyncRelayCommand(ExecuteBrowseWowRootAsync);
         WowRootPath = _settingsService.Settings.WowRootPath;
+        AutoBackupEnabled = settings.AutoBackupEnabled;
+        AutoBackupIntervalDays = settings.AutoBackupIntervalDays.ToString();
+        AutoRetentionEnabled = settings.AutoRetentionEnabled;
+        RetentionMaxPerVersion = settings.RetentionMaxPerVersion.ToString();
 
         LoadDetectedVersions();
         LoadAvailableBackups();
+        _ = RunStartupMaintenanceAsync();
     }
 
     private void LoadDetectedVersions()
@@ -154,7 +177,8 @@ public partial class MainViewModel : ViewModelBase
 
             return successCount;
         });
-
+        
+        await _retentionService.CleanOldBackups();
         StatusMessage = $"Backed up {results} version(s).";
         LoadAvailableBackups();
         IsBusy = false;
@@ -345,5 +369,40 @@ public partial class MainViewModel : ViewModelBase
     partial void OnSelectedBackupChanged(BackupEntry? value)
     {
         RestoreSelectedCommand.NotifyCanExecuteChanged();
+    }
+    
+    private async Task RunStartupMaintenanceAsync()
+    {
+        await _autoBackupService.RunIfDueAsync();
+        await _retentionService.CleanOldBackups();
+        LoadAvailableBackups();
+    }
+    
+    partial void OnAutoBackupEnabledChanged(bool value)
+    {
+        _settingsService.Settings.AutoBackupEnabled = value;
+        _settingsService.Save();
+    }
+
+    partial void OnAutoBackupIntervalDaysChanged(string value)
+    {
+        if (!int.TryParse(value, out var parsed)) return;
+        AutoBackupIntervalDays = parsed.ToString();
+        _settingsService.Settings.AutoBackupIntervalDays = parsed;
+        _settingsService.Save();
+    }
+
+    partial void OnAutoRetentionEnabledChanged(bool value)
+    {
+        _settingsService.Settings.AutoRetentionEnabled = value;
+        _settingsService.Save();
+    }
+
+    partial void OnRetentionMaxPerVersionChanged(string value)
+    {
+        if (!int.TryParse(value, out var parsed)) return;
+        RetentionMaxPerVersion = parsed.ToString();
+        _settingsService.Settings.RetentionMaxPerVersion = parsed;
+        _settingsService.Save();
     }
 }

@@ -9,7 +9,7 @@
         x:DataType="vm:MainViewModel"
         Title="Wipe Recovery"
         Width="700"
-        Height="700">
+        Height="750">
 
     <Design.DataContext>
         <vm:MainViewModel />
@@ -89,6 +89,24 @@
             <Button Content="Restore Selected"
                     Command="{Binding RestoreSelectedCommand}" 
                     IsEnabled="{Binding SelectedBackup}" />
+            
+            <CheckBox Content="Enable Automatic Backups (runs on app startup)"
+                      IsChecked="{Binding AutoBackupEnabled}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Every" VerticalAlignment="Center" />
+                <TextBox Width="50" Text="{Binding AutoBackupIntervalDays}" />
+                <TextBlock Text="days" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <CheckBox Content="Enable Retention Cleanup (runs on app startup and after manual backup)"
+                      IsChecked="{Binding AutoRetentionEnabled}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Keep last" VerticalAlignment="Center" />
+                <TextBox Width="50" Text="{Binding RetentionMaxPerVersion}" />
+                <TextBlock Text="backups per version" VerticalAlignment="Center" />
+            </StackPanel>
             
             <ProgressBar IsIndeterminate="True"
                          Height="6"

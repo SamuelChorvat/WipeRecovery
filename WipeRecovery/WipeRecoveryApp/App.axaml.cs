@@ -1,7 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
@@ -57,6 +56,8 @@ public partial class App : Application
         services.AddSingleton<IGameVersionDetectionService, GameVersionDetectionService>();
         services.AddSingleton<IBackupService, BackupService>();
         services.AddSingleton<IRestoreService, RestoreService>();
+        services.AddSingleton<IAutoBackupService, AutoBackupService>();
+        services.AddSingleton<IRetentionService, RetentionService>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>(sp =>
             new MainWindow
@@ -64,5 +65,4 @@ public partial class App : Application
                 DataContext = sp.GetRequiredService<MainViewModel>()
             });
     }
-    
 }
