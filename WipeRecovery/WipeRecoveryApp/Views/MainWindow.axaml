@@ -8,125 +8,107 @@
         x:Class="WipeRecoveryApp.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Wipe Recovery"
-        Width="700"
-        Height="900">
+        Width="800"
+        Height="550">
 
     <Design.DataContext>
         <vm:MainViewModel />
     </Design.DataContext>
 
     <ScrollViewer Padding="20">
-        <StackPanel Spacing="16">
+    <StackPanel Spacing="16">
 
-            <TextBlock Text="Back up before the boss does." FontSize="18" />
+        <TextBlock Text="Because your UI deserves a soulstone" FontSize="18" />
 
-            <!-- WoW Folder Picker -->
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="WoW Folder:" VerticalAlignment="Center" />
-                <TextBox Width="400" Text="{Binding WowRootPath, Mode=TwoWay}" IsReadOnly="True" />
-                <Button Content="Browse…" Command="{Binding BrowseWowRootCommand}" />
-            </StackPanel>
-            
-            <!-- Missing WoW Folder Warning -->
-            <TextBlock Text="No valid WoW folder found. Please select one above."
-                       Foreground="Yellow"
-                       IsVisible="{Binding HasValidWowRoot, Converter={StaticResource InverseBoolConverter}}" />
+        <!-- WoW and Backup Paths -->
+        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="WoW Folder:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding WowRootPath}" IsReadOnly="True" Margin="4,0"/>
+            <Button Grid.Row="0" Grid.Column="2" Content="Browse…" Command="{Binding BrowseWowRootCommand}" Margin="4,0"/>
 
-            <!-- Detected Versions -->
-            <StackPanel IsVisible="{Binding HasValidWowRoot}">
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Backup Folder:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding BackupPath}" IsReadOnly="True" Margin="4,0"/>
+            <Button Grid.Row="1" Grid.Column="2" Content="Browse…" Command="{Binding BrowseFolderCommand}" Margin="4,0"/>
+        </Grid>
+
+        <TextBlock Text="No valid WoW folder found. Please select one above."
+                   Foreground="Yellow"
+                   IsVisible="{Binding HasValidWowRoot, Converter={StaticResource InverseBoolConverter}}" />
+
+        <TextBlock Text="No WoW versions found in this folder. Try selecting a different World of Warcraft directory."
+                   Foreground="Yellow"
+                   IsVisible="{Binding ShowNoVersionsWarning}" />
+
+        <!-- Detected Versions + Options -->
+        <Grid ColumnDefinitions="1*,1*" IsVisible="{Binding HasValidWowRoot}">
+            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,16,0">
                 <TextBlock Text="Detected WoW Versions:" FontWeight="Bold" />
-                
-                <TextBlock Text="No WoW versions found in this folder. Try selecting a different World of Warcraft directory."
-                           Foreground="Yellow"
-                           IsVisible="{Binding ShowNoVersionsWarning}" />
-
                 <ItemsControl ItemsSource="{Binding DetectedVersions}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:GameVersionInfo">
-                            <CheckBox Content="{Binding DisplayName}"
-                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                            <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected, Mode=TwoWay}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                
+                <Button Content="Back Up Now"
+                        Command="{Binding BackupCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+                
+                <TextBlock Text="Restore Backup:" FontWeight="Bold" Margin="0,10,0,0" />
+
+                <ComboBox ItemsSource="{Binding AvailableBackups}"
+                          SelectedItem="{Binding SelectedBackup}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DisplayName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <CheckBox Content="Restore WTF" IsChecked="{Binding RestoreWtf}" />
+                    <CheckBox Content="Restore AddOns" IsChecked="{Binding RestoreAddOns}" />
+                </StackPanel>
+
+                <Button Content="Restore Selected"
+                        Command="{Binding RestoreSelectedCommand}"
+                        IsEnabled="{Binding SelectedBackup}" />
             </StackPanel>
 
-            <!-- AddOns Toggle -->
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Include AddOns:" VerticalAlignment="Center" />
-                <ToggleSwitch IsChecked="{Binding IncludeAddOns}" />
+            <StackPanel Grid.Column="1" Spacing="8">
+                <TextBlock Text="Options:" FontWeight="Bold" />
+
+                <CheckBox Content="Include AddOns" IsChecked="{Binding IncludeAddOns}" />
+
+                <CheckBox Content="Enable Auto Backup (on startup)" IsChecked="{Binding AutoBackupEnabled}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Every" VerticalAlignment="Center" />
+                    <TextBox Width="50" Text="{Binding AutoBackupIntervalDays}" />
+                    <TextBlock Text="days" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <CheckBox Content="Enable Retention Cleanup (startup and after backup)" IsChecked="{Binding AutoRetentionEnabled}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Keep last" VerticalAlignment="Center" />
+                    <TextBox Width="50" Text="{Binding RetentionMaxPerVersion}" />
+                    <TextBlock Text="backups per version" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <CheckBox Content="Launch on system startup" IsChecked="{Binding LaunchOnStartup}" />
             </StackPanel>
+        </Grid>
 
-            <!-- Backup Folder Picker -->
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Backup Folder:" VerticalAlignment="Center" />
-                <TextBox Width="400" Text="{Binding BackupPath, Mode=TwoWay}" IsReadOnly="True" />
-                <Button Content="Browse…" Command="{Binding BrowseFolderCommand}" />
-            </StackPanel>
+        <!-- Progress + Status -->
+        <ProgressBar IsIndeterminate="True"
+                     Height="6"
+                     IsVisible="{Binding IsBusy}" />
 
-            <!-- Backup Button -->
-            <Button Content="Back Up Now"
-                    Command="{Binding BackupCommand}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+        <TextBlock Text="{Binding StatusMessage}" FontStyle="Italic" Foreground="Gray" />
 
-            <!-- Restore Section -->
-            <TextBlock Text="Restore Backup:" FontWeight="Bold" />
+    </StackPanel>
+</ScrollViewer>
 
-            <ComboBox ItemsSource="{Binding AvailableBackups}"
-                      SelectedItem="{Binding SelectedBackup}"
-                      Width="400">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding DisplayName}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <CheckBox Content="Restore WTF" IsChecked="{Binding RestoreWtf}" />
-                <CheckBox Content="Restore AddOns" IsChecked="{Binding RestoreAddOns}" />
-            </StackPanel>
-
-            <Button Content="Restore Selected"
-                    Command="{Binding RestoreSelectedCommand}" 
-                    IsEnabled="{Binding SelectedBackup}" />
-            
-            <CheckBox Content="Enable Automatic Backups"
-                      IsChecked="{Binding AutoBackupEnabled}">
-                <ToolTip.Tip>
-                    Runs automatically on app startup if enabled.
-                </ToolTip.Tip>
-            </CheckBox>
-
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Every" VerticalAlignment="Center" />
-                <TextBox Width="50" Text="{Binding AutoBackupIntervalDays}" />
-                <TextBlock Text="days" VerticalAlignment="Center" />
-            </StackPanel>
-
-            <CheckBox Content="Enable Retention Cleanup"
-                      IsChecked="{Binding AutoRetentionEnabled}">
-                <ToolTip.Tip>
-                    Runs on startup and after each manual backup.
-                </ToolTip.Tip>
-            </CheckBox>
-
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Keep last" VerticalAlignment="Center" />
-                <TextBox Width="50" Text="{Binding RetentionMaxPerVersion}" />
-                <TextBlock Text="backups per version" VerticalAlignment="Center" />
-            </StackPanel>
-            
-            <CheckBox Content="Launch on system startup"
-                      IsChecked="{Binding LaunchOnStartup}" />
-            
-            <ProgressBar IsIndeterminate="True"
-                         Height="6"
-                         IsVisible="{Binding IsBusy}" />
-
-            <TextBlock Text="{Binding StatusMessage}" FontStyle="Italic" Foreground="Gray" />
-
-        </StackPanel>
-    </ScrollViewer>
 </Window>
-
-
