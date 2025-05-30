@@ -58,6 +58,7 @@ public partial class App : Application
         services.AddSingleton<IRestoreService, RestoreService>();
         services.AddSingleton<IAutoBackupService, AutoBackupService>();
         services.AddSingleton<IRetentionService, RetentionService>();
+        services.AddSingleton<IStartupManager, StartupManager>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>(sp =>
             new MainWindow

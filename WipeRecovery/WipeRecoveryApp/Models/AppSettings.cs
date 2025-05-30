@@ -16,5 +16,5 @@ public class AppSettings
     public DateTime? LastAutoBackupUtc { get; set; }
     public bool AutoRetentionEnabled { get; set; } = false;
     public int RetentionMaxPerVersion { get; set; } = 5;
-
+    public bool LaunchOnStartup { get; set; } = false;
 }

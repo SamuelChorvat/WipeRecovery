@@ -25,6 +25,8 @@ public partial class MainViewModel : ViewModelBase
     private readonly IRestoreService _restoreService;
     private readonly IAutoBackupService _autoBackupService;
     private readonly IRetentionService _retentionService;
+    private readonly IStartupManager _startupManager;
+
     
     [ObservableProperty]
     private string _wowRootPath;
@@ -73,6 +75,9 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _retentionMaxPerVersion;
+    
+    [ObservableProperty]
+    private bool _launchOnStartup;
 
     public IRelayCommand BackupCommand { get; }
     public IRelayCommand RestoreSelectedCommand { get; }
@@ -85,7 +90,8 @@ public partial class MainViewModel : ViewModelBase
         IBackupService backupService,
         IRestoreService restoreService,
         IAutoBackupService autoBackupService,
-        IRetentionService retentionService)
+        IRetentionService retentionService,
+        IStartupManager startupManager)
     {
         _settingsService = settingsService;
         _versionService = versionService;
@@ -93,6 +99,7 @@ public partial class MainViewModel : ViewModelBase
         _restoreService = restoreService;
         _autoBackupService = autoBackupService;
         _retentionService = retentionService;
+        _startupManager = startupManager;
 
         var settings = _settingsService.Settings;
 
@@ -108,6 +115,7 @@ public partial class MainViewModel : ViewModelBase
         AutoBackupIntervalDays = settings.AutoBackupIntervalDays.ToString();
         AutoRetentionEnabled = settings.AutoRetentionEnabled;
         RetentionMaxPerVersion = settings.RetentionMaxPerVersion.ToString();
+        LaunchOnStartup = _settingsService.Settings.LaunchOnStartup;
 
         LoadDetectedVersions();
         LoadAvailableBackups();
@@ -405,4 +413,16 @@ public partial class MainViewModel : ViewModelBase
         _settingsService.Settings.RetentionMaxPerVersion = parsed;
         _settingsService.Save();
     }
+    
+    partial void OnLaunchOnStartupChanged(bool value)
+    {
+        _settingsService.Settings.LaunchOnStartup = value;
+        _settingsService.Save();
+
+        if (value)
+            _startupManager.Enable();
+        else
+            _startupManager.Disable();
+    }
+
 }
