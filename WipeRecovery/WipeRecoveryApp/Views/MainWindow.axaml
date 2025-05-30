@@ -10,6 +10,12 @@
         Title="Wipe Recovery"
         Width="800"
         Height="550">
+    <Window.Background>
+        <ImageBrush Source="avares://WipeRecoveryApp/Assets/background.png"
+                    Stretch="UniformToFill"
+                    AlignmentX="Center"
+                    AlignmentY="Center"/>
+    </Window.Background>
 
     <Design.DataContext>
         <vm:MainViewModel />
