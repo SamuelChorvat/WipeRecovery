@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WipeRecoveryApp", "WipeRecoveryApp\WipeRecoveryApp.csproj", "{EC9CDC57-2490-435B-BD8E-459AA0F61444}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WipeRecoveryApp.Tests", "WipeRecoveryApp.Tests\WipeRecoveryApp.Tests.csproj", "{A15DF1F2-D4D5-43FF-BD85-FBB62153DDE8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC9CDC57-2490-435B-BD8E-459AA0F61444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC9CDC57-2490-435B-BD8E-459AA0F61444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC9CDC57-2490-435B-BD8E-459AA0F61444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC9CDC57-2490-435B-BD8E-459AA0F61444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A15DF1F2-D4D5-43FF-BD85-FBB62153DDE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A15DF1F2-D4D5-43FF-BD85-FBB62153DDE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A15DF1F2-D4D5-43FF-BD85-FBB62153DDE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A15DF1F2-D4D5-43FF-BD85-FBB62153DDE8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
